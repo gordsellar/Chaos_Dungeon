@@ -1,4 +1,5 @@
 import numpy as np
+import pickle as pc
 
 __doc__ = '''
 Contains the Room() class as well as definitions for helping create rooms.
@@ -10,7 +11,8 @@ class Room(object):
     will randomly generate a room (no inputs required).
     '''
     def __init__(self, size = 'random', metric = 'imperial', shape = 'random',
-                 bounds = ((5,50),(5,50),(5,50)), seed = None):
+                 bounds = ((5,50),(5,50),(5,50)), walls = 'random',
+                 seed = None):
         '''
         Initializes the Room() class.
 
@@ -22,8 +24,8 @@ class Room(object):
                 (string)
             - shape: the shape of the room, current options: 'random',
                 'rectangle', 'ellipse'. (string) For a non-rectangular/polygonal
-                room, the size tuple takes the form (radius, eccentricity,
-                height)
+                room, the size tuple takes the form (semimajor, semiminor,
+                height) (semimajor/semiminor axes)
             - bounds: the bounds for the dimensionality of the room. This is a
                 3-tuple of two-tuples, one tuple for each value in the "size"
                 parameter. For example, if I wanted my room to not exceed 100
@@ -31,6 +33,16 @@ class Room(object):
                 width or height, I would assigne the tuple:
                     bounds = ((20,100),(20,100),(20,100))
                 The default is ((5,50),(5,50),(5,50)).
+            - walls: the type of wall material. 'random' will pick from the
+                following list:
+                - 'good quality stone'
+                - 'poor quality stone'
+                - 'good quality wood'
+                - 'poor quality wood'
+                - 'dirt, compacted'
+                - 'dirt, loose'
+                Default is 'random'. Can change possible options and their
+                weights in the file 'room.in'
             - seed: used to recreate a particular room (int)
         '''
         # Predefined attributes
@@ -40,6 +52,8 @@ class Room(object):
         self.allowed_shape = ['random','rectangle','ellipse']
         self.allowed_bounds = [type((0,))]
         self.seedi = 0
+        with open('.pic','rb') as infile:
+            self.
 
         # User-input attributes
         self.size = size
@@ -60,14 +74,20 @@ class Room(object):
             else:
                 self.seed = seed
                 self.rand = np.rand.RandomState(seed)
+        if self.size == 'random':
             self.random_size()
+        if self.shape == 'random':
+            self.random_shape()
+
+        # Generating the room
+        self.create_room()
 
     def generate_seed(self):
         '''
         Generates a seed for the room's random generations and generates a
         numpy.random generator seeded with our seed.
         '''
-        seed = np.random.randint(1, 1e10)
+        seed = np.random.randint(1, 4294967000)
         self.rand = np.random.RandomState(seed)
         self.seed = seed
 
@@ -75,7 +95,7 @@ class Room(object):
         '''
         Resets the seed after a seed shift.
         '''
-        self.rand = np.random.Randomstate(seed)
+        self.rand = np.random.RandomState(seed)
         self.seedi = 0
 
     def seed_increment(self):
@@ -85,28 +105,26 @@ class Room(object):
         saved in self.seed.
         '''
         self.seedi += 1
-        self.rand = np.random.Randomstate(seed+self.seedi)
+        self.rand = np.random.RandomState(self.seed+self.seedi)
 
     def random_size(self):
         '''
         Generate a random room size given a seed.
         '''
-        w1 = self.rand.randint(self.bounds[0][0], self.bounds[0][1],2)
+        w1 = self.rand.randint(self.bounds[0][0], self.bounds[0][1])
         self.seed_increment()
-        w2 = self.rand.randint(self.bounds[1][0], self.bounds[1][1],2)
+        w2 = self.rand.randint(self.bounds[1][0], self.bounds[1][1])
         self.seed_increment()
-        w3 = self.rand.randint(self.bounds[2][0], self.bounds[2][1],2)
+        w3 = self.rand.randint(self.bounds[2][0], self.bounds[2][1])
         self.size = (
-            (w1[0],w1[1]),
-            (w2[0],w2[1]),
-            (w3[0],w3[1])
+            w1,
+            w2,
+            w3
         )
 
     def random_shape(self):
         guess = self.rand.randint(1,len(self.allowed_shape))
         self.shape = self.allowed_shape[guess]
-
-
 
     def checks(self):
         '''
@@ -128,3 +146,38 @@ class Room(object):
               type(self.bounds) not in allowed_bounds and
               len(self.bounds) != 3):
             raise ValueError('The "bounds" input is not assigned an allowed input.')
+
+    def create_room(self):
+        '''
+        Generates the room.
+        '''
+        # Creating a cubical map on which to place the room's features.
+        self.bgmap = np.zeros(self.size)
+
+        # Generating the walls & ceiling.
+        self.walls = self.bgmap
+        if self.shape == 'rectangle':
+            for i in range(self.size[0]):
+                for j in range(self.size[1]):
+                    for k in range(self.size[2]):
+                        if i == 0 or i == self.size[0]:
+                            self.walls[i,j,k] = 1
+                        elif j == 0 or j == self.size[1]:
+                            self.walls[i,j,k] = 1
+                        elif k == 0 or k == self.size[2]:
+                            self.walls[i,j,k] = 1
+
+        elif self.shape == 'ellipse':
+            for i in range(self.size[0]):
+                for j in range(self.size[1]):
+                    ellipes_eq = np.rint(((i+5)/self.size[0])**2 + ((j+5)/self.size[1])**2) == 1
+                    if ellipes_eq:
+                        self.walls[i,j,:] = 1
+
+
+
+
+
+
+
+# END
