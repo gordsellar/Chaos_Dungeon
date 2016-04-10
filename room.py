@@ -52,13 +52,11 @@ class Room(object):
         self.allowed_shape = ['random','rectangle','ellipse']
         self.allowed_bounds = [type((0,))]
         self.seedi = 0
-        with open('.pic','rb') as infile:
-            self.
 
         # User-input attributes
         self.size = size
-        self.metric = metric
-        self.shape = shape
+        self.metric = metric.lower()
+        self.shape = shape.lower()
         self.bounds = bounds
 
         # Checking inputs for problems
@@ -157,27 +155,69 @@ class Room(object):
         # Generating the walls & ceiling.
         self.walls = self.bgmap
         if self.shape == 'rectangle':
-            for i in range(self.size[0]):
-                for j in range(self.size[1]):
-                    for k in range(self.size[2]):
-                        if i == 0 or i == self.size[0]:
-                            self.walls[i,j,k] = 1
-                        elif j == 0 or j == self.size[1]:
-                            self.walls[i,j,k] = 1
-                        elif k == 0 or k == self.size[2]:
-                            self.walls[i,j,k] = 1
+            self.walls[0,:,:] = 1
+            self.walls[:,0,:] = 1
+            self.walls[:,:,0] = 1
+            self.walls[self.size[0]-1,:,:] = 1
+            self.walls[:,self.size[1]-1,:] = 1
+            self.walls[:,:,self.size[2]-1] = 1
 
         elif self.shape == 'ellipse':
             for i in range(self.size[0]):
                 for j in range(self.size[1]):
-                    ellipes_eq = np.rint(((i+5)/self.size[0])**2 + ((j+5)/self.size[1])**2) == 1
-                    if ellipes_eq:
+                    ellipes_eq = np.rint(((i+5)/self.size[0])**2 + ((j+5)/self.size[1])**2)
+                    if ellipes_eq >= 1:
                         self.walls[i,j,:] = 1
+                    else:
+                        self.walls[i,j,:] = 0
 
+    def roomString(self,level = 1):
+        '''
+        Generates a string that represents the room at a given height
+        level.
+        Inputs:
+            - level: the level to be displayed/printed
+        Outputs:
+            - roomstr: a string that when printed represented the room and
+                its contents.
+        '''
+        # Importing character settings, see character.draw
+        chars = {}
+        with open('character.draw','r') as infile:
+            for line in infile:
+                if line[0] == '*':
+                    # Comment character for input files
+                    # Since hashtags are used too often in chars
+                    # At least, I predict they might be.
+                    pass
 
+                else:
+                    # Split into list ["key","char"]
+                    splitz = line.split(':')
+                    chars[splitz[0]] = splitz[1][:-1]
 
+        # Generating the string
+        roomstr = ""
 
+        # Barebones gen (floor + walls + ceiling)
+        # Chopping desired level
+        current_level = self.walls[:,:,level]
+        for i in range(current_level.shape[0]):
+            for j in range(current_level.shape[1]):
+                if current_level[i,j] == 1:
+                    # Wall
+                    roomstr += chars['wall']
+                elif current_level[i,j] == 0:
+                    # Floor
+                    roomstr += chars['floor']
+                else:
+                    # Idk yet
+                    roomstr += ' '
+            # Enter
+            roomstr += '\n'
 
+        #Eventually add more things here (features, etc.)
 
+        return roomstr
 
 # END

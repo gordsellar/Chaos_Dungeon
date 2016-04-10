@@ -1,8 +1,10 @@
-# The first column is the descriptor, the second column is the probability
-# of that being chosen out of the sum total of the probability column.
-# e.g., if a section has 5 items, with 3 1-probability 
-% Walls ------------------------------------
-good quality stone, 1
-good quality wood, 1
-poor quality stone, 1
-poor quality wood, 1
+_wall_qualities = [
+    good quality stone,
+    good quality wood,
+    poor quality stone,
+    poor quality wood
+]
+
+_door_qualities = [
+    
+]

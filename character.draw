@@ -1,0 +1,5 @@
+* Room chars
+wall: #
+floor: +
+trap: T
+feature: X

@@ -32,3 +32,5 @@
 # Debug files
 *.dSYM/
 testing.py
+Tiles/
+loader.py
