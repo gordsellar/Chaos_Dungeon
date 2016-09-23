@@ -11,4 +11,4 @@ A dungeon generator for my pen-and-paper RPG sessions.
 
 ## Dependencies
 The current dependencies to run Chaos_Dungeon is the following. If it can be installed with `pip` I will include a line to copy and paste, if not I will link to instructions for download (I doubt this will be the case though):
-    * `console` (handy `pip` line: `pip install --upgrade console`)
+* `console` (handy `pip` line: `pip install --upgrade console`)
